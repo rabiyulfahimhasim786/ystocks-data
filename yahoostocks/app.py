@@ -3,9 +3,7 @@
 #with open(activate_this) as file_:
 #with open(activate_this) as file:
 #    exec(file.read(), dict(__file__=activate_this))
-
-#from flask import Flask, render_template
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 import bs4
 from bs4 import BeautifulSoup
 import requests
@@ -28,20 +26,6 @@ dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
 
 app = Flask(__name__)
 
-
-@app.route('/') 
-def hello_world():
-   return 'Hello world from Flask!' 
-
-
-@app.route('/hello') 
-def hello():
-   return render_template('home.html')
-
-
-@app.route('/html') 
-def index():
-   return render_template('index.html')
 
 user_agent_list = [
  'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.155 Safari/537.36 OPR/31.0.1889.174',
@@ -544,7 +528,13 @@ user_agent_list = [
  'Mozilla/5.0 (Linux; Ubuntu 14.04) AppleWebKit/537.36 Chromium/35.0.1870.2 Safari/537.36',
  'Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; yie11; rv:11.0) like Gecko',]
 
+@app.route('/') 
+def hello_world():
+   return 'Hello world from Flask!' 
 
+@app.route('/hello') 
+def hello():
+   return '200 Status ok'
 
 
 
@@ -568,7 +558,7 @@ def mostactive():
     headers = {'User-Agent': user_agent }
     r= requests.get(url, headers=headers)
     data=r.text
-    soup=BeautifulSoup(data, 'html.parser')
+    soup=BeautifulSoup(data,'lxml')
     for listing in soup.find_all('tr', attrs={'class':'simpTblRow'}):
         for symbol in listing.find_all('td', attrs={'aria-label': 'Symbol'}):
             symbols.append(symbol.text)
@@ -588,12 +578,6 @@ def mostactive():
             marketCaps.append(marketCap.text)
         for Ration in listing.find_all('td', attrs={'aria-label':'PE Ratio (TTM)'}):
             Rations.append(Ration.text)
-        #INFYtd=listing.findAll("td", attrs={'aria-label':'PE Ratio (TTM)'})
-        #for child in INFYtd:
-            #print(child.text)
-        #rt = listing.findAll("td", attrs={'aria-label':'PE Ratio (TTM)'})
-        #for Ration in rt:
-        #    Rations.append(Ration.text)
  
     dataframe = pd.DataFrame({"Symbols": symbols, "Names": names, "Prices": prices, "Change": changes, "% Change": percentChanges, "Volume": circulatingSupplys, "Average Volume": totalVolumes, "Market Cap": marketCaps, "Ration": Rations, "date/time":dt_string,})#"Volume":circulatingSupplys})
     #dataframe.to_csv('demo.csv')
@@ -621,7 +605,7 @@ def gainers():
     headers = {'User-Agent': user_agent }
     r= requests.get(url, headers=headers)
     data=r.text
-    soup=BeautifulSoup(data, 'html.parser')
+    soup=BeautifulSoup(data,'lxml')
     for listing in soup.find_all('tr', attrs={'class':'simpTblRow'}):
         for ar in listing.find_all('td', attrs={'aria-label': 'Symbol'}):
             ar_.append(ar.text)
@@ -668,7 +652,7 @@ def losers():
     headers = {'User-Agent': user_agent }
     r= requests.get(url, headers=headers)
     data=r.text
-    soup=BeautifulSoup(data, 'html.parser')
+    soup=BeautifulSoup(data,'lxml')
     for listing in soup.find_all('tr', attrs={'class':'simpTblRow'}):
         for ga in listing.find_all('td', attrs={'aria-label': 'Symbol'}):
             ga_.append(ga.text)
@@ -715,7 +699,7 @@ def trendingtickers():
     headers = {'User-Agent': user_agent }
     r= requests.get(url, headers=headers)
     data=r.text
-    soup=BeautifulSoup(data, 'html.parser')
+    soup=BeautifulSoup(data,'lxml')
     for listing in soup.find_all('tr', attrs={'class':'simpTblRow'}):
         for sa in listing.find_all('td', attrs={'aria-label': 'Symbol'}):
             sa_.append(sa.find('a').text)
@@ -741,9 +725,252 @@ def trendingtickers():
 
     dataframe.to_csv('/var/www/flask/a/static/files/trendingtickers.csv', encoding='utf-8')
     return '200 Status ok'
-#@app.route('/html') 
-#def index():
-#   return render_template('index.html')
+
+user_agent_nasdaq = [
+'Mozilla/5.0 (Amiga; U; AmigaOS 1.3; en; rv:1.8.1.19) Gecko/20081204 SeaMonkey/1.1.14', 
+'Mozilla/5.0 (AmigaOS; U; AmigaOS 1.3; en-US; rv:1.8.1.21) Gecko/20090303 SeaMonkey/1.1.15', 
+'Mozilla/5.0 (AmigaOS; U; AmigaOS 1.3; en; rv:1.8.1.19) Gecko/20081204 SeaMonkey/1.1.14', 
+'Mozilla/5.0 (Android 2.2; Windows; U; Windows NT 6.1; en-US) AppleWebKit/533.19.4 (KHTML, like Gecko) Version/5.0.3 Safari/533.19.4', 
+'Mozilla/5.0 (BeOS; U; BeOS BeBox; fr; rv:1.9) Gecko/2008052906 BonEcho/2.0', 
+'Mozilla/5.0 (BeOS; U; BeOS BePC; en-US; rv:1.8.1.1) Gecko/20061220 BonEcho/2.0.0.1', 
+'Mozilla/5.0 (BeOS; U; BeOS BePC; en-US; rv:1.8.1.10) Gecko/20071128 BonEcho/2.0.0.10', 
+'Mozilla/5.0 (BeOS; U; BeOS BePC; en-US; rv:1.8.1.17) Gecko/20080831 BonEcho/2.0.0.17', 
+'Mozilla/5.0 (BeOS; U; BeOS BePC; en-US; rv:1.8.1.6) Gecko/20070731 BonEcho/2.0.0.6', 
+'Mozilla/5.0 (BeOS; U; BeOS BePC; en-US; rv:1.8.1.7) Gecko/20070917 BonEcho/2.0.0.7', 
+'Mozilla/5.0 (BeOS; U; BeOS BePC; en-US; rv:1.8.1b2) Gecko/20060901 Firefox/2.0b2', 
+'Mozilla/5.0 (BeOS; U; BeOS BePC; en-US; rv:1.9a1) Gecko/20051002 Firefox/1.6a1', 
+'Mozilla/5.0 (BeOS; U; BeOS BePC; en-US; rv:1.9a1) Gecko/20060702 SeaMonkey/1.5a', 
+'Mozilla/5.0 (BeOS; U; Haiku BePC; en-US; rv:1.8.1.10pre) Gecko/20080112 SeaMonkey/1.1.7pre', 
+'Mozilla/5.0 (BeOS; U; Haiku BePC; en-US; rv:1.8.1.14) Gecko/20080429 BonEcho/2.0.0.14', 
+'Mozilla/5.0 (BeOS; U; Haiku BePC; en-US; rv:1.8.1.17) Gecko/20080831 BonEcho/2.0.0.17', 
+'Mozilla/5.0 (Darwin; FreeBSD 5.6; en-GB; rv:1.9.1b3pre)Gecko/20081211 K-Meleon/1.5.2', 
+'Mozilla/5.0 (Future Star Technologies Corp.; Star-Blade OS; x86_64; U; en-US) iNet Browser 4.7', 
+'Mozilla/5.0 (Linux 2.4.18-18.7.x i686; U) Opera 6.03 [en]', 
+'Mozilla/5.0 (Linux 2.4.18-ltsp-1 i686; U) Opera 6.1 [en]', 
+'Mozilla/5.0 (Linux 2.4.19-16mdk i686; U) Opera 6.11 [en]', 
+'Mozilla/5.0 (Linux 2.4.21-0.13mdk i686; U) Opera 7.11 [en]', 
+'Mozilla/5.0 (Linux X86; U; Debian SID; it; rv:1.9.0.1) Gecko/2008070208 Debian IceWeasel/3.0.1', 
+'Mozilla/5.0 (Linux i686 ; U; en; rv:1.8.1) Gecko/20061208 Firefox/2.0.0 Opera 9.70',
+'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0b8) Gecko/20100101 Firefox/4.0b8',
+'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_7) AppleWebKit/534.24 (KHTML, like Gecko) RockMelt/0.9.56.283', 
+'Mozilla/5.0 (compatible; Konqueror/3.1; i686 Linux; 20020811)', 
+'Mozilla/5.0 (compatible; Konqueror/3.1; i686 Linux; 20020817)', 
+'Mozilla/5.0 (compatible; Konqueror/3.1; i686 Linux; 20020913)', 
+'Mozilla/5.0 (compatible; Konqueror/3.1; i686 Linux; 20020928)', 
+'Mozilla/5.0 (compatible; Konqueror/3.1; i686 Linux; 20021001)', 
+'Mozilla/5.0 (compatible; Konqueror/3.1; i686 Linux; 20021006)', 
+'Mozilla/5.0 (compatible; Konqueror/3.1; i686 Linux; 20021007)', 
+'Mozilla/5.0 (compatible; Konqueror/3.1; i686 Linux; 20021027)', 
+'Mozilla/5.0 (compatible; Konqueror/3.1; i686 Linux; 20021102)', 
+'Mozilla/5.0 (compatible; Konqueror/3.1; i686 Linux; 20021103)',
+'Mozilla/5.0 (compatible; Konqueror/3.1; i686 Linux; 20021105)', 
+'Mozilla/5.0 (compatible; Konqueror/3.1; i686 Linux; 20021106)', 
+'Mozilla/5.0 (compatible; Konqueror/3.1; i686 Linux; 20021113)', 
+'Mozilla/5.0 (compatible; Konqueror/3.1; i686 Linux; 20021128)', 
+'Mozilla/5.0 (compatible; Konqueror/3.2; FreeBSD) (KHTML, like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/3.2; Linux 2.6.2) (KHTML, like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/3.2; Linux) (KHTML, like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/3.2; Linux; X11; en_US) (KHTML, like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/3.3) (KHTML, like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/3.3) KHTML/3.3.2 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/3.3; Linux 2.4.22-xfs; X11) KHTML/3.3.2 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/3.3; Linux 2.4.27; X11) (KHTML, like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/3.3; Linux 2.6.11) KHTML/3.3.2 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/3.3; Linux 2.6.11.12-whnetz-xenU; X11; i686; en_US) KHTML/3.3.2 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/3.3; Linux 2.6.11; X11) KHTML/3.3.2 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/3.3; Linux 2.6.11; X11; i686) KHTML/3.3.2 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/3.3; Linux 2.6.11; X11; i686; de) KHTML/3.3.2 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/3.3; Linux 2.6.9-1.667) (KHTML, like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/3.3; Linux) (KHTML, like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/3.3; Linux) KHTML/3.3.2 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/3.3; SunOS) (KHTML, like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/3.4) KHTML/3.4.0 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/3.4) KHTML/3.4.2 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/3.4; Linux 2.6.11; X11)', 
+'Mozilla/5.0 (compatible; Konqueror/3.4; Linux 2.6.11; X11) KHTML/3.4.0 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/3.4; Linux 2.6.12.6; X11; i686; en_US) KHTML/3.4.3 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/3.4; Linux 2.6.12; X11) KHTML/3.4.1 (like Gecko) (Debian package 4:3.4.1-1)', 
+'Mozilla/5.0 (compatible; Konqueror/3.4; Linux) KHTML/3.4.0 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/3.4; Linux) KHTML/3.4.1 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/3.4; Linux) KHTML/3.4.2 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/3.4; Linux) KHTML/3.4.2 (like Gecko) (Debian package 4:3.4.2-4)', 
+'Mozilla/5.0 (compatible; Konqueror/3.4; Linux) KHTML/3.4.3 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/3.4; Linux) KHTML/3.4.3 (like Gecko) (Debian package 4:3.4.3-2)', 
+'Mozilla/5.0 (compatible; Konqueror/3.4; Linux) KHTML/3.4.3 (like Gecko) (Kubuntu package 4:3.4.3-0ubuntu1)', 
+'Mozilla/5.0 (compatible; Konqueror/3.4; Linux) KHTML/3.4.3 (like Gecko) (Kubuntu package 4:3.4.3-0ubuntu2)', 
+'Mozilla/5.0 (compatible; Konqueror/3.4; Linux; de, en_US) KHTML/3.4.2 (like Gecko) (Debian package 4:3.4.2-4)', 
+'Mozilla/5.0 (compatible; Konqueror/3.4; SunOS) KHTML/3.4.1 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/3.5; Linux) KHTML/3.5.6 (like Gecko) (Kubuntu)', 
+'Mozilla/5.0 (compatible; Konqueror/3.5; Linux) KHTML/3.5.7 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/3.5; Linux) KHTML/3.5.7 (like Gecko) (Debian)', 
+'Mozilla/5.0 (compatible; Konqueror/3.5; Linux) KHTML/3.5.7 (like Gecko) (Kubuntu)', 
+'Mozilla/5.0 (compatible; Konqueror/3.5; Linux) KHTML/3.5.7 (like Gecko) SUSE', 
+'Mozilla/5.0 (compatible; Konqueror/3.5; Linux) KHTML/3.5.9 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/3.5; Linux; X11) KHTML/3.5.3 (like Gecko) Kubuntu 6.06 Dapper', 
+'Mozilla/5.0 (compatible; Konqueror/3.5; Linux; X11; i686; en_US) KHTML/3.5.6 (like Gecko) (Debian)', 
+'Mozilla/5.0 (compatible; Konqueror/3.5; Linux; de) KHTML/3.5.5 (like Gecko) (Debian)',
+'Mozilla/5.0 (compatible; Konqueror/3.5; Linux; en_US) KHTML/3.5.6 (like Gecko) (Kubuntu)', 
+'Mozilla/5.0 (compatible; Konqueror/3.5; Linux; i686; U; it-IT) KHTML/3.5.5 (like Gecko) (Debian)', 
+'Mozilla/5.0 (compatible; Konqueror/3.5; Linux; x86_64) KHTML/3.5.5 (like Gecko)',
+'Mozilla/5.0 (compatible; Konqueror/3.5; Linux; x86_64) KHTML/3.5.5 (like Gecko) (Debian)', 
+'Mozilla/5.0 (compatible; Konqueror/3.5; Linux; x86_64; en_US) KHTML/3.5.10 (like Gecko) SUSE', 
+'Mozilla/5.0 (compatible; Konqueror/3.5; NetBSD 3.0; X11) KHTML/3.5.2 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/3.5; NetBSD 4.0_RC3; X11) KHTML/3.5.7 (like Gecko)',
+'Mozilla/5.0 (compatible; Konqueror/3.5; SunOS)', 
+'Mozilla/5.0 (compatible; Konqueror/3.5; SunOS) KHTML/3.5.0 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/3.5; SunOS) KHTML/3.5.1 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/3.5; Windows NT 6.0) KHTML/3.5.6 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/4.0; Linux) KHTML/4.0.82 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/4.0; Linux; x86_64) KHTML/4.0.2 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/4.0; Windows) KHTML/4.0.83 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/4.0; X11) KHTML/4.0.3 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/4.1; DragonFly) KHTML/4.1.4 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/4.1; Linux 2.6.27.7-134.fc10.x86_64; X11; x86_64) KHTML/4.1.3 (like Gecko) Fedora/4.1.3-4.fc10', 
+'Mozilla/5.0 (compatible; Konqueror/4.1; Linux) KHTML/4.1.3 (like Gecko) Fedora/4.1.3-3.fc10', 
+'Mozilla/5.0 (compatible; Konqueror/4.1; Linux) KHTML/4.1.4 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/4.1; OpenBSD) KHTML/4.1.4 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/4.2) KHTML/4.2.4 (like Gecko) Fedora/4.2.4-2.fc11', 
+'Mozilla/5.0 (compatible; Konqueror/4.2; Linux) KHTML/4.2.1 (like Gecko) Fedora/4.2.1-4.fc11', 
+'Mozilla/5.0 (compatible; Konqueror/4.2; Linux) KHTML/4.2.2 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/4.2; Linux) KHTML/4.2.4 (like Gecko) Fedora/4.2.4-2.fc11', 
+'Mozilla/5.0 (compatible; Konqueror/4.2; Linux) KHTML/4.2.4 (like Gecko) Slackware/13.0', 
+'Mozilla/5.0 (compatible; Konqueror/4.2; Linux) KHTML/4.2.96 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/4.2; Linux) KHTML/4.2.98 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/4.2; Linux; X11; x86_64) KHTML/4.2.4 (like Gecko) Fedora/4.2.4-2.fc11', 
+'Mozilla/5.0 (compatible; Konqueror/4.3; Linux 2.6.31-16-generic; X11) KHTML/4.3.2 (like Gecko)', 
+'Mozilla/5.0 (compatible; Konqueror/4.3; Linux) KHTML/4.3.1 (like Gecko) Fedora/4.3.1-3.fc11', 
+'Mozilla/5.0 (compatible; Konqueror/4.4; Linux 2.6.32-22-generic; X11; en_US) KHTML/4.4.3 (like Gecko) Kubuntu', 
+'Mozilla/5.0 (compatible; Konqueror/4.4; Linux) KHTML/4.4.1 (like Gecko) Fedora/4.4.1-1.fc12', 
+'Mozilla/5.0 (compatible; Konqueror/4.5; FreeBSD) KHTML/4.5.4 (like Gecko)', 
+'Mozilla/5.0 (compatible; MSIE 10.0; Macintosh; Intel Mac OS X 10_7_3; Trident/6.0)', 
+'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/4.0; InfoPath.2; SV1; .NET CLR 2.0.50727; WOW64)', 
+'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/5.0)', 
+'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)', 
+'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; WOW64; Trident/6.0)', 
+'Mozilla/5.0 (compatible; MSIE 10.6; Windows NT 6.1; Trident/5.0; InfoPath.2; SLCC1; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729; .NET CLR 2.0.50727) 3gpp-gba UNTRUSTED/1.0', 
+'Mozilla/5.0 (compatible; MSIE 6.0; Windows NT 5.1)', 
+'Mozilla/5.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.1.4325)', 
+'Mozilla/5.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 2.0.50727)', 
+'Mozilla/5.0 (compatible; MSIE 6.0; Windows NT 5.1; zh-cn) Opera 8.65', 
+'Mozilla/5.0 (compatible; MSIE 7.0; Windows 98; SpamBlockerUtility 6.3.91; SpamBlockerUtility 6.2.91; .NET CLR 4.1.89;GB)', 
+'Mozilla/5.0 (compatible; MSIE 7.0; Windows NT 5.0; Trident/4.0; FBSMTWB; .NET CLR 2.0.34861; .NET CLR 3.0.3746.3218; .NET CLR 3.5.33652; msn OptimizedIE8;ENUS)', 
+'Mozilla/5.0 (compatible; MSIE 7.0; Windows NT 5.2; WOW64; .NET CLR 2.0.50727)', 
+'Mozilla/5.0 (compatible; MSIE 7.0; Windows NT 6.0; SLCC1; .NET CLR 2.0.50727; Media Center PC 5.0; c .NET CLR 3.0.04506; .NET CLR 3.5.30707; InfoPath.1; el-GR)', 
+'Mozilla/5.0 (compatible; MSIE 7.0; Windows NT 6.0; WOW64; SLCC1; .NET CLR 2.0.50727; Media Center PC 5.0; c .NET CLR 3.0.04506; .NET CLR 3.5.30707; InfoPath.1; el-GR)',
+]
+
+@app.route("/nasdaqfile", methods =["GET", "POST"])
+def nasdaqfiles():
+    #if request.method == "POST":
+    if request.method == "GET":
+        #if True:
+        url = "https://api.nasdaq.com/api/screener/stocks?tableonly=true&limit=8000&offset=0"
+        for i in range(1,2):
+          user_gent = random.choice(user_agent_nasdaq)
+          #Pick a random user agent
+              #headers = {'User-Agent': user_agent }
+          print(user_gent)
+            #headers = {'User-Agent': ua.random }
+        headers = {'User-Agent': user_gent }
+        r = requests.get(url, headers=headers)
+        j = r.json()
+            
+        table = j['data']['table']
+        table_headers = table['headers']
+
+        with open('/var/www/flask/a/static/files/nasdaqfile.csv', 'w', newline='') as f_output:
+          csv_output = csv.DictWriter(f_output, 
+          fieldnames=table_headers.values(), extrasaction='ignore')
+          csv_output.writeheader()
+
+          for table_row in table['rows']:
+            csv_row = {table_headers.get(key, None) : value for key, value in table_row.items()}
+            csv_output.writerow(csv_row)
+        #html = requests.get(url).content
+        return 'ok'
+
+@app.route("/nasdaqc", methods =["GET", "POST"])
+def nasdaqc():
+    #if request.method == "POST":
+    if request.method == "GET":
+        if True:
+            for i in range(1,2):
+                #Pick a random user agent
+                user_agent = random.choice(user_agent_list)
+            #headers = {'User-Agent': user_agent }
+            #print(user_agent)
+            url = 'https://finance.yahoo.com/quote/%5EIXIC'
+
+            headers = {'User-Agent': user_agent }
+            print(user_agent)
+            html = requests.get(url, headers=headers).content
+            #html = requests.get(url).content
+            soup = BeautifulSoup(html, 'lxml')
+            price = soup.find_all('fin-streamer', attrs={'data-test': 'qsp-price'})
+            previousclose = soup.find_all('td', attrs={'data-test': 'PREV_CLOSE-value'})
+            change = soup.find_all('fin-streamer', attrs={'data-test': 'qsp-price-change'})
+            fiftytwo = soup.find_all('td', attrs={'data-test': 'FIFTY_TWO_WK_RANGE-value'})
+            day = soup.find_all('td', attrs={'data-test': 'DAYS_RANGE-value'})
+
+            price_ = []
+            previousclose_ = []
+            change_ = []
+            fiftytwo_ = []
+            day_ = []
+
+            for title in price:
+                price_.append(title.text.strip())
+            for title in previousclose:
+                previousclose_.append(title.text.strip())
+            for title in change:
+                change_.append(title.text.strip())
+            for title in fiftytwo:
+                fiftytwo_.append(title.text.strip())
+            for title in day:
+                day_.append(title.text.strip())
+            #
+            dictionary = {'Price': price_, 'Previousclose': previousclose_, 'Change': change_, 'Fiftytwo': fiftytwo_, 'Day': day_, 'date/time': dt_string,} #'Fiftytwo': fiftytwo_, }#'Volume': fb_, 'Avg volume': gb_, 'Market cap': hb_, 'Ration': ib_,}
+            df = pd.DataFrame(dictionary)
+            # saving the dataframe
+            df.to_csv('/var/www/flask/a/static/files/yahoo_nasdaq_current.csv')
+            return 'ok'
+
+@app.route("/nasdaqfuture", methods =["GET", "POST"])
+def nasdaqfuture():
+    #if request.method == "POST":
+    if request.method == "GET":
+        if True:
+            for i in range(1,2):
+                #Pick a random user agent
+                user_agent = random.choice(user_agent_list)
+            #headers = {'User-Agent': user_agent }
+            #print(user_agent)
+            url = 'https://finance.yahoo.com/quote/NQ%3DF?p=NQ%3DF'
+            headers = {'User-Agent': user_agent }
+            print(user_agent)
+            html = requests.get(url, headers=headers).content
+            #html = requests.get(url).content
+            soup = BeautifulSoup(html, 'lxml')
+            nfutureprice = soup.find_all('fin-streamer', attrs={'data-test': 'qsp-price'})
+            changes = soup.find_all('fin-streamer', attrs={'data-test': 'qsp-price-change'})
+            lastprice = soup.find_all('td', attrs={'data-test': 'LAST_PRICE-value'})
+
+
+            futureprice_ = []
+            changes_ = []
+            lastprice_ = []
+
+            for title in nfutureprice:
+                futureprice_.append(title.text.strip())
+            for title in changes:
+                changes_.append(title.text.strip())
+            for title in lastprice:
+                lastprice_.append(title.text.strip())
+            dictionary = {'Price': futureprice_, 'Change': changes_, 'previous close': lastprice_, 'date/time': dt_string,}
+            df = pd.DataFrame(dictionary)
+             # saving the dataframe
+            df.to_csv('/var/www/flask/a/static/files/yahoo_nasdaq_future.csv')
+            return 'ok'
 
 if __name__ == '__main__':
     app.run()
